@@ -20,6 +20,20 @@ public class PaymentForm extends javax.swing.JFrame {
      */
     public PaymentForm() {
         initComponents();
+
+        javax.swing.JButton backButton = new javax.swing.JButton("Back");
+        backButton.setBounds(10, 10, 70, 25);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            }
+        });
+        getContentPane().add(backButton);
     }
 
     /**
@@ -39,7 +53,7 @@ public class PaymentForm extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JTextField();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

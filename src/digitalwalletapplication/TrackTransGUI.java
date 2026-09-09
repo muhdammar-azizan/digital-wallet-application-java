@@ -24,6 +24,20 @@ public class TrackTransGUI extends javax.swing.JFrame {
      */
     public TrackTransGUI() {
         initComponents();
+
+        javax.swing.JButton backButton = new javax.swing.JButton("Back");
+        backButton.setBounds(10, 10, 70, 25);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            }
+        });
+        getContentPane().add(backButton);
     }
 
     /**
@@ -41,7 +55,7 @@ public class TrackTransGUI extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(102, 153, 255));
 

@@ -25,6 +25,20 @@ public class TransactionGUI extends javax.swing.JFrame {
      */
     public TransactionGUI() {
         initComponents();
+
+        javax.swing.JButton backButton = new javax.swing.JButton("Back");
+        backButton.setBounds(10, 10, 70, 25);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            }
+        });
+        getContentPane().add(backButton);
     }
 
     /**
@@ -48,7 +62,7 @@ public class TransactionGUI extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         jTextField5 = new javax.swing.JTextField();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(102, 153, 255));
 
@@ -141,8 +155,6 @@ public class TransactionGUI extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        System.out.println("Tansaction Completed !");
-
         jTextField5.setFont(new java.awt.Font("SansSerif", 0, 12)); // NOI18N
         jTextField5.setText("DIGITAL WALLET APPLICATION");
         jTextField5.addActionListener(new java.awt.event.ActionListener() {
@@ -182,35 +194,104 @@ public class TransactionGUI extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        
-        String amount = jTextField2.getText();
+
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId == null) {
+            JOptionPane.showMessageDialog(null, "Please log in first.");
+            return;
+        }
+
+        String amountText = jTextField2.getText();
         String date = jTextField3.getText();
         String recid = jTextField4.getText();
 
-        PreparedStatement ps;
-        String query = "INSERT INTO `register`( `amount`, `date`, `recid`) VALUES (?,?,?)";
+        if (amountText == null || amountText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter an amount.");
+            return;
+        }
+
+        if (date == null || date.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a date.");
+            return;
+        }
+
+        if (recid == null || recid.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a Receiver ID.");
+            return;
+        }
+
+        double amount;
         try {
-            ps = MyConnection.getConnection().prepareStatement(query);
+            amount = Double.parseDouble(amountText.trim());
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid numeric amount.");
+            return;
+        }
 
-            
-            ps.setString(1, amount);
-            ps.setString(2, date);
-            ps.setString(3, recid);
+        if (amount <= 0) {
+            JOptionPane.showMessageDialog(null, "Amount must be greater than zero.");
+            return;
+        }
 
-            if(ps.executeUpdate() > 0)
-            {
-                JOptionPane.showMessageDialog(null, "Balance After Transaction = 200");
-                Menu mn = new Menu();
-                mn.setVisible(true);
-                mn.pack();
-                mn.setLocationRelativeTo(null);
-                mn.setDefaultCloseOperation(Login.EXIT_ON_CLOSE);
-                dispose();
+        PreparedStatement checkPs;
+        PreparedStatement updatePs;
+        PreparedStatement insertPs;
+        ResultSet rs;
+        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
+        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
+        String insertQuery = "INSERT INTO `transactions` (`transaction_id`, `user_id`, `amount`, `transaction_date`, `recipient_id`) VALUES (?,?,?,?,?)";
+
+        try {
+            checkPs = MyConnection.getConnection().prepareStatement(checkQuery);
+            checkPs.setString(1, loggedInUserId);
+            rs = checkPs.executeQuery();
+
+            double currentBalance = 0.0;
+            if (rs.next()) {
+                String currentBalanceStr = rs.getString("walletba");
+                if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                    try {
+                        currentBalance = Double.parseDouble(currentBalanceStr.trim());
+                    } catch (NumberFormatException nfe) {
+                        currentBalance = 0.0;
+                    }
+                }
             }
+
+            if (currentBalance < amount) {
+                JOptionPane.showMessageDialog(null, "Insufficient balance for this transaction.");
+                return;
+            }
+
+            double newBalance = currentBalance - amount;
+            String transactionId = loggedInUserId + "_" + System.currentTimeMillis();
+
+            updatePs = MyConnection.getConnection().prepareStatement(updateQuery);
+            updatePs.setString(1, String.valueOf(newBalance));
+            updatePs.setString(2, loggedInUserId);
+            updatePs.executeUpdate();
+
+            insertPs = MyConnection.getConnection().prepareStatement(insertQuery);
+            insertPs.setString(1, transactionId);
+            insertPs.setString(2, loggedInUserId);
+            insertPs.setDouble(3, amount);
+            insertPs.setString(4, date.trim());
+            insertPs.setString(5, recid.trim());
+            insertPs.executeUpdate();
+
+            JOptionPane.showMessageDialog(null, "Transaction successful! New balance: " + newBalance);
+
+            Menu mn = new Menu();
+            mn.setVisible(true);
+            mn.pack();
+            mn.setLocationRelativeTo(null);
+            mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+            dispose();
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
-            Logger.getLogger(Register.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TransactionGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed

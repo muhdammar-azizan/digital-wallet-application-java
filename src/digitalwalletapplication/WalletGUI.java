@@ -7,6 +7,7 @@
 package digitalwalletapplication;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +23,42 @@ public class WalletGUI extends javax.swing.JFrame {
     public static String balance;
     public WalletGUI() {
         initComponents();
+
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId != null) {
+            try {
+                PreparedStatement ps = MyConnection.getConnection().prepareStatement(
+                    "SELECT `walletba` FROM `register` WHERE `id`=?");
+                ps.setString(1, loggedInUserId);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    String currentBalanceStr = rs.getString("walletba");
+                    if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                        jLabel3.setText("Balance: " + currentBalanceStr);
+                    } else {
+                        jLabel3.setText("No wallet yet");
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(WalletGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        javax.swing.JButton backButton = new javax.swing.JButton("Back");
+        backButton.setBounds(10, 10, 70, 25);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            }
+        });
+        getContentPane().add(backButton);
     }
 
     /**
@@ -40,7 +77,7 @@ public class WalletGUI extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(102, 153, 255));
 
@@ -139,30 +176,63 @@ public class WalletGUI extends javax.swing.JFrame {
         return;
     }
 
-    String walletba = jWallet.getText(); // Get wallet amount from input
+    String amountText = jWallet.getText(); // Get wallet amount from input
 
-    if (walletba == null || walletba.trim().isEmpty()) {
+    if (amountText == null || amountText.trim().isEmpty()) {
         JOptionPane.showMessageDialog(null, "Please enter a wallet amount.");
         return;
     }
 
-    PreparedStatement ps;
-    String query = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
+    double amountToAdd;
+    try {
+        amountToAdd = Double.parseDouble(amountText.trim());
+    } catch (NumberFormatException nfe) {
+        JOptionPane.showMessageDialog(null, "Please enter a valid numeric amount.");
+        return;
+    }
+
+    if (amountToAdd <= 0) {
+        JOptionPane.showMessageDialog(null, "Amount must be greater than zero.");
+        return;
+    }
+
+    PreparedStatement checkPs;
+    PreparedStatement updatePs;
+    ResultSet rs;
+    String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
+    String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
 
     try {
-        ps = MyConnection.getConnection().prepareStatement(query);
+        checkPs = MyConnection.getConnection().prepareStatement(checkQuery);
+        checkPs.setString(1, loggedInUserId);
+        rs = checkPs.executeQuery();
 
-        ps.setString(1, walletba);
-        ps.setString(2, loggedInUserId);
+        double currentBalance = 0.0;
+        if (rs.next()) {
+            String currentBalanceStr = rs.getString("walletba");
+            if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                try {
+                    currentBalance = Double.parseDouble(currentBalanceStr.trim());
+                } catch (NumberFormatException nfe) {
+                    currentBalance = 0.0;
+                }
+            }
+        }
 
-        if (ps.executeUpdate() > 0) {
-            JOptionPane.showMessageDialog(null, "Wallet amount added");
+        double newBalance = currentBalance + amountToAdd;
+
+        updatePs = MyConnection.getConnection().prepareStatement(updateQuery);
+        updatePs.setString(1, String.valueOf(newBalance));
+        updatePs.setString(2, loggedInUserId);
+
+        if (updatePs.executeUpdate() > 0) {
+            JOptionPane.showMessageDialog(null, "Wallet updated! New balance: " + newBalance);
 
             Menu mn = new Menu();
             mn.setVisible(true);
             mn.pack();
             mn.setLocationRelativeTo(null);
-            mn.setDefaultCloseOperation(WalletGUI.EXIT_ON_CLOSE);
+            mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
             dispose();
         } else {
             JOptionPane.showMessageDialog(null, "Update failed. User record not found.");
