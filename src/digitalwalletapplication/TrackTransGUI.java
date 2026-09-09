@@ -6,6 +6,11 @@
 
 package digitalwalletapplication;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -115,13 +120,48 @@ public class TrackTransGUI extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(null,"Balance : 200 \n Amount Transaction : 300 \n Recipient ID = 1234");
-        Menu mn = new Menu();
-        mn.setVisible(true);
-        mn.pack();
-        mn.setLocationRelativeTo(null);
-        mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
-        dispose();
+
+        String transactionID = jTextField1.getText();
+
+        if (transactionID == null || transactionID.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a Transaction ID.");
+            return;
+        }
+
+        PreparedStatement ps;
+        ResultSet rs;
+        String query = "SELECT * FROM `transactions` WHERE `transaction_id`=?";
+
+        try {
+            ps = MyConnection.getConnection().prepareStatement(query);
+            ps.setString(1, transactionID.trim());
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                double amount = rs.getDouble("amount");
+                String date = rs.getString("transaction_date");
+                String recipientId = rs.getString("recipient_id");
+
+                JOptionPane.showMessageDialog(null,
+                    "Transaction ID: " + transactionID
+                    + "\nAmount: " + amount
+                    + "\nDate: " + date
+                    + "\nRecipient ID: " + recipientId);
+
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(null, "No transaction found with ID: " + transactionID);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            Logger.getLogger(TrackTransGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**

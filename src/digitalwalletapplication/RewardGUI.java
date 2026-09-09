@@ -6,6 +6,10 @@
 
 package digitalwalletapplication;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 public class RewardGUI extends javax.swing.JFrame {
@@ -105,13 +109,59 @@ public class RewardGUI extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(null, "Your points added successfully");
-        Menu mn = new Menu();
-        mn.setVisible(true);
-        mn.pack();
-        mn.setLocationRelativeTo(null);
-        mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
-        dispose();
+
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId == null) {
+            JOptionPane.showMessageDialog(null, "Please log in first.");
+            return;
+        }
+
+        String pointsText = jTextField1.getText();
+
+        if (pointsText == null || pointsText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter points to add.");
+            return;
+        }
+
+        int pointsToAdd;
+        try {
+            pointsToAdd = Integer.parseInt(pointsText.trim());
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid whole number for points.");
+            return;
+        }
+
+        if (pointsToAdd <= 0) {
+            JOptionPane.showMessageDialog(null, "Points to add must be greater than zero.");
+            return;
+        }
+
+        PreparedStatement ps;
+        String query = "UPDATE `register` SET `rewardpoints` = `rewardpoints` + ? WHERE `id`=?";
+
+        try {
+            ps = MyConnection.getConnection().prepareStatement(query);
+            ps.setInt(1, pointsToAdd);
+            ps.setString(2, loggedInUserId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(null, "Your points added successfully");
+
+                Menu mn = new Menu();
+                mn.setVisible(true);
+                mn.pack();
+                mn.setLocationRelativeTo(null);
+                mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to add points. User record not found.");
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            Logger.getLogger(RewardGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
