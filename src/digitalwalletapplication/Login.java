@@ -237,6 +237,7 @@ public class Login extends javax.swing.JFrame {
  
             if (rs.next())
             {
+                Session.setLoggedInUserId(rs.getString("id"));
                 JOptionPane.showMessageDialog(null,"Login SuccessFull");
                 Menu mn = new Menu();
                 mn.setVisible(true);
