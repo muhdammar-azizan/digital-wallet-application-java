@@ -14,6 +14,19 @@ public class DisplayCurrency extends javax.swing.JFrame {
         initComponents();
     }
 
+    public DisplayCurrency(double usdAmount) {
+        initComponents();
+
+        double eurAmount = usdAmount * 0.85;
+        double jpyAmount = usdAmount * 110.0;
+        double inrAmount = usdAmount * 74.0;
+
+        jLabel6.setText(String.valueOf(usdAmount));
+        jLabel7.setText(String.valueOf(eurAmount));
+        jLabel8.setText(String.valueOf(jpyAmount));
+        jLabel9.setText(String.valueOf(inrAmount));
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

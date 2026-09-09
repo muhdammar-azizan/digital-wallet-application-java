@@ -5,6 +5,9 @@
 
 
 package digitalwalletapplication;
+
+import javax.swing.JOptionPane;
+
 public class CurrencyForm extends javax.swing.JFrame {
 
     /**
@@ -111,7 +114,28 @@ public class CurrencyForm extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        DisplayCurrency ds = new DisplayCurrency();
+
+        String amountText = jTextField1.getText();
+
+        if (amountText == null || amountText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter an amount in USD.");
+            return;
+        }
+
+        double usdAmount;
+        try {
+            usdAmount = Double.parseDouble(amountText.trim());
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid numeric amount.");
+            return;
+        }
+
+        if (usdAmount < 0) {
+            JOptionPane.showMessageDialog(null, "Amount cannot be negative.");
+            return;
+        }
+
+        DisplayCurrency ds = new DisplayCurrency(usdAmount);
         ds.setVisible(true);
         ds.pack();
         ds.setLocationRelativeTo(null);
