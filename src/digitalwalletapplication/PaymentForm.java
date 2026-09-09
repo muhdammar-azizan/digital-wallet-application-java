@@ -6,6 +6,11 @@
 
 package digitalwalletapplication;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 public class PaymentForm extends javax.swing.JFrame {
@@ -125,13 +130,93 @@ public class PaymentForm extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        JOptionPane.showMessageDialog(null, "Payment Successful");
-        Menu mn = new Menu();
-        mn.setVisible(true);
-        mn.pack();
-        mn.setLocationRelativeTo(null);
-        mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
-        dispose();
+
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId == null) {
+            JOptionPane.showMessageDialog(null, "Please log in first.");
+            return;
+        }
+
+        String paymentID = jTextField1.getText();
+        String amountText = jTextField2.getText();
+
+        if (paymentID == null || paymentID.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a Payment ID.");
+            return;
+        }
+
+        if (amountText == null || amountText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a payment amount.");
+            return;
+        }
+
+        double paymentAmount;
+        try {
+            paymentAmount = Double.parseDouble(amountText.trim());
+        } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid numeric amount.");
+            return;
+        }
+
+        if (paymentAmount <= 0) {
+            JOptionPane.showMessageDialog(null, "Payment amount must be greater than zero.");
+            return;
+        }
+
+        PreparedStatement checkPs;
+        PreparedStatement updatePs;
+        ResultSet rs;
+        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
+        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
+
+        try {
+            checkPs = MyConnection.getConnection().prepareStatement(checkQuery);
+            checkPs.setString(1, loggedInUserId);
+            rs = checkPs.executeQuery();
+
+            if (rs.next()) {
+                String currentBalanceStr = rs.getString("walletba");
+                double currentBalance = 0.0;
+
+                if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                    try {
+                        currentBalance = Double.parseDouble(currentBalanceStr.trim());
+                    } catch (NumberFormatException nfe) {
+                        currentBalance = 0.0;
+                    }
+                }
+
+                if (currentBalance >= paymentAmount) {
+                    double newBalance = currentBalance - paymentAmount;
+
+                    updatePs = MyConnection.getConnection().prepareStatement(updateQuery);
+                    updatePs.setString(1, String.valueOf(newBalance));
+                    updatePs.setString(2, loggedInUserId);
+
+                    if (updatePs.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(null, "Payment Successful! New balance: " + newBalance);
+
+                        Menu mn = new Menu();
+                        mn.setVisible(true);
+                        mn.pack();
+                        mn.setLocationRelativeTo(null);
+                        mn.setDefaultCloseOperation(Menu.EXIT_ON_CLOSE);
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Payment failed. Could not update balance.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Insufficient balance for this payment.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Wallet not found. Please create a wallet first.");
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            Logger.getLogger(PaymentForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
