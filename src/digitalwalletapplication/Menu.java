@@ -13,6 +13,9 @@ public class Menu extends javax.swing.JFrame {
      */
     public Menu() {
         initComponents();
+
+        jButton7.setText("LOGOUT");
+        pack();
     }
 
     /**
@@ -215,6 +218,12 @@ public class Menu extends javax.swing.JFrame {
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
+        Session.clearSession();
+        Login lg = new Login();
+        lg.setVisible(true);
+        lg.pack();
+        lg.setLocationRelativeTo(null);
+        lg.setDefaultCloseOperation(Login.EXIT_ON_CLOSE);
         dispose();
     }//GEN-LAST:event_jButton7ActionPerformed
 
