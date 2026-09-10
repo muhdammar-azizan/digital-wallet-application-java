@@ -178,11 +178,6 @@ CREATE TABLE `payments` (
 
 ---
 
-## 📸 Screenshots
-
-*(Add screenshots of the Login, Menu, Wallet, Transaction, and Payment screens here.)*
-
----
 
 ## 👥 Authors
 
