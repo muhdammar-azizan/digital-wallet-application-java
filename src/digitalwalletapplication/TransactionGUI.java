@@ -9,9 +9,11 @@ package digitalwalletapplication;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame; 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,8 +28,40 @@ public class TransactionGUI extends javax.swing.JFrame {
     public TransactionGUI() {
         initComponents();
 
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId != null) {
+            try {
+                PreparedStatement ps = MyConnection.getConnection().prepareStatement(
+                    "SELECT `walletba` FROM `register` WHERE `id`=?");
+                ps.setString(1, loggedInUserId);
+                ResultSet rs = ps.executeQuery();
+
+                String balanceText;
+                if (rs.next()) {
+                    String currentBalanceStr = rs.getString("walletba");
+                    if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                        balanceText = "Current Balance: " + currentBalanceStr;
+                    } else {
+                        balanceText = "You do not have a wallet yet.";
+                    }
+                } else {
+                    balanceText = "You do not have a wallet yet.";
+                }
+
+                javax.swing.JLabel balanceLabel = new javax.swing.JLabel(balanceText);
+                balanceLabel.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
+                balanceLabel.setBounds(jLabel2.getX(), jLabel6.getY() + jLabel6.getHeight() + 5, 300, 20);
+                jPanel1.add(balanceLabel);
+            } catch (SQLException ex) {
+                Logger.getLogger(TransactionGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         javax.swing.JButton backButton = new javax.swing.JButton("Back");
-        backButton.setBounds(10, 10, 70, 25);
+        int headerHeight = jPanel1.getY();
+        int backButtonY = Math.max(2, (headerHeight - 25) / 2);
+        backButton.setBounds(10, backButtonY, 70, 25);
         backButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Menu mn = new Menu();
@@ -39,6 +73,99 @@ public class TransactionGUI extends javax.swing.JFrame {
             }
         });
         getContentPane().add(backButton);
+
+        jTextField3.setToolTipText("Format: DD/MM/YYYY, e.g. 15/01/2025");
+
+        javax.swing.JButton pickDateButton = new javax.swing.JButton("Pick Date");
+        pickDateButton.setBounds(jTextField3.getX() + jTextField3.getWidth() + 8, jTextField3.getY(), 90, jTextField3.getHeight());
+        pickDateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showDatePicker();
+            }
+        });
+        jPanel1.add(pickDateButton);
+    }
+
+    private void showDatePicker() {
+        final java.util.Calendar calendar = java.util.Calendar.getInstance();
+        final javax.swing.JDialog dialog = new javax.swing.JDialog(this, "Select Date", true);
+        dialog.setLayout(new java.awt.BorderLayout());
+
+        final javax.swing.JLabel monthLabel = new javax.swing.JLabel("", javax.swing.SwingConstants.CENTER);
+        javax.swing.JButton prevButton = new javax.swing.JButton("<");
+        javax.swing.JButton nextButton = new javax.swing.JButton(">");
+
+        javax.swing.JPanel headerPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        headerPanel.add(prevButton, java.awt.BorderLayout.WEST);
+        headerPanel.add(monthLabel, java.awt.BorderLayout.CENTER);
+        headerPanel.add(nextButton, java.awt.BorderLayout.EAST);
+
+        final javax.swing.JPanel daysPanel = new javax.swing.JPanel(new java.awt.GridLayout(0, 7, 2, 2));
+
+        final Runnable[] refresh = new Runnable[1];
+        refresh[0] = new Runnable() {
+            public void run() {
+                daysPanel.removeAll();
+
+                String[] dayNames = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+                for (String dn : dayNames) {
+                    daysPanel.add(new javax.swing.JLabel(dn, javax.swing.SwingConstants.CENTER));
+                }
+
+                java.util.Calendar temp = (java.util.Calendar) calendar.clone();
+                temp.set(java.util.Calendar.DAY_OF_MONTH, 1);
+                int startDayOfWeek = temp.get(java.util.Calendar.DAY_OF_WEEK);
+                int daysInMonth = temp.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+
+                for (int i = 1; i < startDayOfWeek; i++) {
+                    daysPanel.add(new javax.swing.JLabel(""));
+                }
+
+                for (int day = 1; day <= daysInMonth; day++) {
+                    final int selectedDay = day;
+                    javax.swing.JButton dayButton = new javax.swing.JButton(String.valueOf(day));
+                    dayButton.addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(java.awt.event.ActionEvent evt) {
+                            calendar.set(java.util.Calendar.DAY_OF_MONTH, selectedDay);
+                            int year = calendar.get(java.util.Calendar.YEAR);
+                            int month = calendar.get(java.util.Calendar.MONTH) + 1;
+                            String formatted = String.format("%02d/%02d/%04d", selectedDay, month, year);
+                            jTextField3.setText(formatted);
+                            dialog.dispose();
+                        }
+                    });
+                    daysPanel.add(dayButton);
+                }
+
+                String[] monthNames = {"January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"};
+                monthLabel.setText(monthNames[calendar.get(java.util.Calendar.MONTH)] + " " + calendar.get(java.util.Calendar.YEAR));
+
+                daysPanel.revalidate();
+                daysPanel.repaint();
+            }
+        };
+
+        prevButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                calendar.add(java.util.Calendar.MONTH, -1);
+                refresh[0].run();
+            }
+        });
+        nextButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                calendar.add(java.util.Calendar.MONTH, 1);
+                refresh[0].run();
+            }
+        });
+
+        refresh[0].run();
+
+        dialog.add(headerPanel, java.awt.BorderLayout.NORTH);
+        dialog.add(daysPanel, java.awt.BorderLayout.CENTER);
+        dialog.setSize(280, 280);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     /**
@@ -216,6 +343,15 @@ public class TransactionGUI extends javax.swing.JFrame {
             return;
         }
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        dateFormat.setLenient(false);
+        try {
+            dateFormat.parse(date.trim());
+        } catch (ParseException pe) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid date in DD/MM/YYYY format (or use Pick Date).");
+            return;
+        }
+
         if (recid == null || recid.trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please enter a Receiver ID.");
             return;
@@ -265,7 +401,18 @@ public class TransactionGUI extends javax.swing.JFrame {
             }
 
             double newBalance = currentBalance - amount;
-            String transactionId = loggedInUserId + "_" + System.currentTimeMillis();
+
+            PreparedStatement maxIdPs = MyConnection.getConnection().prepareStatement(
+                "SELECT MAX(CAST(SUBSTRING(transaction_id, 2) AS UNSIGNED)) AS maxNum FROM transactions WHERE transaction_id LIKE 'T%'");
+            ResultSet maxIdRs = maxIdPs.executeQuery();
+            int nextNum = 1;
+            if (maxIdRs.next()) {
+                int maxNum = maxIdRs.getInt("maxNum");
+                if (!maxIdRs.wasNull()) {
+                    nextNum = maxNum + 1;
+                }
+            }
+            String transactionId = "T" + String.format("%03d", nextNum);
 
             updatePs = MyConnection.getConnection().prepareStatement(updateQuery);
             updatePs.setString(1, String.valueOf(newBalance));
@@ -280,7 +427,7 @@ public class TransactionGUI extends javax.swing.JFrame {
             insertPs.setString(5, recid.trim());
             insertPs.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "Transaction successful! New balance: " + newBalance);
+            JOptionPane.showMessageDialog(null, "Transaction successful! Transaction ID: " + transactionId + ", New balance: " + newBalance);
 
             Menu mn = new Menu();
             mn.setVisible(true);

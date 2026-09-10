@@ -17,7 +17,9 @@ public class CurrencyForm extends javax.swing.JFrame {
         initComponents();
 
         javax.swing.JButton backButton = new javax.swing.JButton("Back");
-        backButton.setBounds(10, 10, 70, 25);
+        int headerHeight = jPanel1.getY();
+        int backButtonY = Math.max(2, (headerHeight - 25) / 2);
+        backButton.setBounds(10, backButtonY, 70, 25);
         backButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Menu mn = new Menu();

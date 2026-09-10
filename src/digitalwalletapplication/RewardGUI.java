@@ -7,6 +7,7 @@
 package digitalwalletapplication;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,8 +21,33 @@ public class RewardGUI extends javax.swing.JFrame {
     public RewardGUI() {
         initComponents();
 
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId != null) {
+            try {
+                PreparedStatement ps = MyConnection.getConnection().prepareStatement(
+                    "SELECT `rewardpoints` FROM `register` WHERE `id`=?");
+                ps.setString(1, loggedInUserId);
+                ResultSet rs = ps.executeQuery();
+
+                int currentPoints = 0;
+                if (rs.next()) {
+                    currentPoints = rs.getInt("rewardpoints");
+                }
+
+                javax.swing.JLabel pointsLabel = new javax.swing.JLabel("Current Points: " + currentPoints);
+                pointsLabel.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
+                pointsLabel.setBounds(jLabel1.getX(), jButton1.getY() - 30, 300, 20);
+                jPanel1.add(pointsLabel);
+            } catch (SQLException ex) {
+                Logger.getLogger(RewardGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         javax.swing.JButton backButton = new javax.swing.JButton("Back");
-        backButton.setBounds(10, 10, 70, 25);
+        int headerHeight = jPanel1.getY();
+        int backButtonY = Math.max(2, (headerHeight - 25) / 2);
+        backButton.setBounds(10, backButtonY, 70, 25);
         backButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Menu mn = new Menu();

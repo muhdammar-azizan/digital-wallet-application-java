@@ -26,7 +26,9 @@ public class TrackTransGUI extends javax.swing.JFrame {
         initComponents();
 
         javax.swing.JButton backButton = new javax.swing.JButton("Back");
-        backButton.setBounds(10, 10, 70, 25);
+        int headerHeight = jPanel1.getY();
+        int backButtonY = Math.max(2, (headerHeight - 25) / 2);
+        backButton.setBounds(10, backButtonY, 70, 25);
         backButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Menu mn = new Menu();
@@ -161,6 +163,23 @@ public class TrackTransGUI extends javax.swing.JFrame {
                     + "\nAmount: " + amount
                     + "\nDate: " + date
                     + "\nRecipient ID: " + recipientId);
+
+                int confirm = JOptionPane.showConfirmDialog(null,
+                    "Do you want to delete this transaction?",
+                    "Delete Transaction",
+                    JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    PreparedStatement deletePs = MyConnection.getConnection().prepareStatement(
+                        "DELETE FROM `transactions` WHERE `transaction_id`=?");
+                    deletePs.setString(1, transactionID.trim());
+
+                    if (deletePs.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(null, "Transaction deleted successfully.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Delete failed. Please try again.");
+                    }
+                }
 
                 Menu mn = new Menu();
                 mn.setVisible(true);

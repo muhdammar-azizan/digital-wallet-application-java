@@ -17,6 +17,7 @@ public class Main {
         Transaction[] transactions = new Transaction[100];
         TrackingTransaction[] trackingTransactions = new TrackingTransaction[100];
         Payment[] payments = new Payment[50];
+        double[] transactionAmounts = new double[100];
 
         int userCount = 0;
         int transactionCount = 0;
@@ -155,6 +156,7 @@ public class Main {
                             if (wallets[index].getBalance() >= transAmount) {
                                 TrackingTransaction trackingTransaction = new TrackingTransaction(transactionID, transAmount, date, receiverID);
                                 trackingTransactions[trackingTransactionCount++] = trackingTransaction;
+                                transactionAmounts[trackingTransactionCount - 1] = transAmount;
                                 wallets[index].addTransaction(trackingTransaction);
                                 rewardPoints[index].addPoint((int) transAmount / 10);
                                 wallets[index].deductBalance(transAmount);
@@ -175,6 +177,12 @@ public class Main {
                         for (int i = 0; i < trackingTransactionCount; i++) {
                             trackingTransactions[i].displayTransaction();
                         }
+
+                        double totalTransactionAmount = 0;
+                        for (int i = 0; i < trackingTransactionCount; i++) {
+                            totalTransactionAmount += transactionAmounts[i];
+                        }
+                        System.out.println("Total transaction amount: " + totalTransactionAmount);
                     }
 
                     break;

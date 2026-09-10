@@ -21,8 +21,44 @@ public class PaymentForm extends javax.swing.JFrame {
     public PaymentForm() {
         initComponents();
 
+        PaymentIDlabel.setText("Other Details (Optional):");
+        PaymentIDlabel.setFont(new java.awt.Font("SansSerif", 0, 10));
+        jTextField1.setToolTipText("Other Payment Details (Optional) - e.g. bill reference or notes");
+
+        String loggedInUserId = Session.getLoggedInUserId();
+
+        if (loggedInUserId != null) {
+            try {
+                PreparedStatement ps = MyConnection.getConnection().prepareStatement(
+                    "SELECT `walletba` FROM `register` WHERE `id`=?");
+                ps.setString(1, loggedInUserId);
+                ResultSet rs = ps.executeQuery();
+
+                String balanceText;
+                if (rs.next()) {
+                    String currentBalanceStr = rs.getString("walletba");
+                    if (currentBalanceStr != null && !currentBalanceStr.trim().isEmpty()) {
+                        balanceText = "Current Balance: " + currentBalanceStr;
+                    } else {
+                        balanceText = "You do not have a wallet yet.";
+                    }
+                } else {
+                    balanceText = "You do not have a wallet yet.";
+                }
+
+                javax.swing.JLabel balanceLabel = new javax.swing.JLabel(balanceText);
+                balanceLabel.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
+                balanceLabel.setBounds(PaymentIDlabel.getX(), jButton1.getY() - 30, 300, 20);
+                jPanel1.add(balanceLabel);
+            } catch (SQLException ex) {
+                Logger.getLogger(PaymentForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         javax.swing.JButton backButton = new javax.swing.JButton("Back");
-        backButton.setBounds(10, 10, 70, 25);
+        int headerHeight = jPanel1.getY();
+        int backButtonY = Math.max(2, (headerHeight - 25) / 2);
+        backButton.setBounds(10, backButtonY, 70, 25);
         backButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Menu mn = new Menu();
@@ -152,13 +188,8 @@ public class PaymentForm extends javax.swing.JFrame {
             return;
         }
 
-        String paymentID = jTextField1.getText();
+        String otherDetails = jTextField1.getText();
         String amountText = jTextField2.getText();
-
-        if (paymentID == null || paymentID.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please enter a Payment ID.");
-            return;
-        }
 
         if (amountText == null || amountText.trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please enter a payment amount.");
@@ -180,9 +211,14 @@ public class PaymentForm extends javax.swing.JFrame {
 
         PreparedStatement checkPs;
         PreparedStatement updatePs;
+        PreparedStatement maxIdPs;
+        PreparedStatement insertPs;
         ResultSet rs;
+        ResultSet maxIdRs;
         String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
         String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
+        String maxIdQuery = "SELECT MAX(CAST(SUBSTRING(payment_id, 2) AS UNSIGNED)) AS maxNum FROM payments WHERE payment_id LIKE 'P%'";
+        String insertQuery = "INSERT INTO `payments` (`payment_id`, `user_id`, `amount`, `details`) VALUES (?,?,?,?)";
 
         try {
             checkPs = MyConnection.getConnection().prepareStatement(checkQuery);
@@ -209,7 +245,29 @@ public class PaymentForm extends javax.swing.JFrame {
                     updatePs.setString(2, loggedInUserId);
 
                     if (updatePs.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(null, "Payment Successful! New balance: " + newBalance);
+                        maxIdPs = MyConnection.getConnection().prepareStatement(maxIdQuery);
+                        maxIdRs = maxIdPs.executeQuery();
+                        int nextNum = 1;
+                        if (maxIdRs.next()) {
+                            int maxNum = maxIdRs.getInt("maxNum");
+                            if (!maxIdRs.wasNull()) {
+                                nextNum = maxNum + 1;
+                            }
+                        }
+                        String paymentId = "P" + String.format("%03d", nextNum);
+
+                        insertPs = MyConnection.getConnection().prepareStatement(insertQuery);
+                        insertPs.setString(1, paymentId);
+                        insertPs.setString(2, loggedInUserId);
+                        insertPs.setDouble(3, paymentAmount);
+                        if (otherDetails != null && !otherDetails.trim().isEmpty()) {
+                            insertPs.setString(4, otherDetails.trim());
+                        } else {
+                            insertPs.setNull(4, java.sql.Types.VARCHAR);
+                        }
+                        insertPs.executeUpdate();
+
+                        JOptionPane.showMessageDialog(null, "Payment Successful! Payment ID: " + paymentId + ", New balance: " + newBalance);
 
                         Menu mn = new Menu();
                         mn.setVisible(true);
