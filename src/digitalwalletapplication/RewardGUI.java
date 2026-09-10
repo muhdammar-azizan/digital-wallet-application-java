@@ -25,6 +25,7 @@ public class RewardGUI extends javax.swing.JFrame {
 
         if (loggedInUserId != null) {
             try {
+                // OOP Requirement: Database manipulation - SEARCH (load current points on form open)
                 PreparedStatement ps = MyConnection.getConnection().prepareStatement(
                     "SELECT `rewardpoints` FROM `register` WHERE `id`=?");
                 ps.setString(1, loggedInUserId);
@@ -178,6 +179,7 @@ public class RewardGUI extends javax.swing.JFrame {
         }
 
         PreparedStatement ps;
+        // OOP Requirement: Database manipulation - EDIT/UPDATE
         String query = "UPDATE `register` SET `rewardpoints` = `rewardpoints` + ? WHERE `id`=?";
 
         try {

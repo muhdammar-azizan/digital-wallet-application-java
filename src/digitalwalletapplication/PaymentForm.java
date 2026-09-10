@@ -29,6 +29,7 @@ public class PaymentForm extends javax.swing.JFrame {
 
         if (loggedInUserId != null) {
             try {
+                // OOP Requirement: Database manipulation - SEARCH (load current balance on form open)
                 PreparedStatement ps = MyConnection.getConnection().prepareStatement(
                     "SELECT `walletba` FROM `register` WHERE `id`=?");
                 ps.setString(1, loggedInUserId);
@@ -215,10 +216,10 @@ public class PaymentForm extends javax.swing.JFrame {
         PreparedStatement insertPs;
         ResultSet rs;
         ResultSet maxIdRs;
-        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
-        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
-        String maxIdQuery = "SELECT MAX(CAST(SUBSTRING(payment_id, 2) AS UNSIGNED)) AS maxNum FROM payments WHERE payment_id LIKE 'P%'";
-        String insertQuery = "INSERT INTO `payments` (`payment_id`, `user_id`, `amount`, `details`) VALUES (?,?,?,?)";
+        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?"; // OOP Requirement: Database manipulation - SEARCH
+        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?"; // OOP Requirement: Database manipulation - EDIT/UPDATE
+        String maxIdQuery = "SELECT MAX(CAST(SUBSTRING(payment_id, 2) AS UNSIGNED)) AS maxNum FROM payments WHERE payment_id LIKE 'P%'"; // OOP Requirement: Database manipulation - SEARCH
+        String insertQuery = "INSERT INTO `payments` (`payment_id`, `user_id`, `amount`, `details`) VALUES (?,?,?,?)"; // OOP Requirement: Database manipulation - INSERT
 
         try {
             checkPs = MyConnection.getConnection().prepareStatement(checkQuery);

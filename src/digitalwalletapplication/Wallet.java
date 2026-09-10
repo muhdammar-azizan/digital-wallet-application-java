@@ -6,6 +6,7 @@
 
 package digitalwalletapplication;
 
+// OOP Requirement: Composition and aggregation - a Wallet owns/holds Transaction objects
 class Wallet {
     private double balance;
     private final Transaction[] transactions;

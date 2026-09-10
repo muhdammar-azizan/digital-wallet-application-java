@@ -9,14 +9,17 @@ package digitalwalletapplication;
 import java.util.Scanner;
 
 public class Main {
+    // OOP Requirement: Handling input and output via the IDE console
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        // OOP Requirement: Arrays - array of objects (User[], Wallet[], etc.)
         User[] users = new User[10];
         Wallet[] wallets = new Wallet[10];
         RewardPoint[] rewardPoints = new RewardPoint[10];
         Transaction[] transactions = new Transaction[100];
         TrackingTransaction[] trackingTransactions = new TrackingTransaction[100];
         Payment[] payments = new Payment[50];
+        // OOP Requirement: Arrays - array of primitives (double[])
         double[] transactionAmounts = new double[100];
 
         int userCount = 0;
@@ -33,6 +36,7 @@ public class Main {
             new Currency("4", "INR", "Indian Rupee", 74.0)
         };
 
+        // OOP Requirement: Control and repetition statement (while loop)
         while (true) {
             System.out.println("\nMain Menu:");
             System.out.println("1. Register User");
@@ -54,6 +58,7 @@ public class Main {
             int choice = scanner.nextInt();
             scanner.nextLine();
 
+            // OOP Requirement: Control statement (switch-case)
             switch (choice) {
                 case 1:
                     if (userCount < users.length) {
@@ -178,6 +183,7 @@ public class Main {
                             trackingTransactions[i].displayTransaction();
                         }
 
+                        // OOP Requirement: use of the primitive array declared above
                         double totalTransactionAmount = 0;
                         for (int i = 0; i < trackingTransactionCount; i++) {
                             totalTransactionAmount += transactionAmounts[i];

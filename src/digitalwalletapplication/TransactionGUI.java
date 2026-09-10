@@ -32,6 +32,7 @@ public class TransactionGUI extends javax.swing.JFrame {
 
         if (loggedInUserId != null) {
             try {
+                // OOP Requirement: Database manipulation - SEARCH (load current balance on form open)
                 PreparedStatement ps = MyConnection.getConnection().prepareStatement(
                     "SELECT `walletba` FROM `register` WHERE `id`=?");
                 ps.setString(1, loggedInUserId);
@@ -374,9 +375,9 @@ public class TransactionGUI extends javax.swing.JFrame {
         PreparedStatement updatePs;
         PreparedStatement insertPs;
         ResultSet rs;
-        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?";
-        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?";
-        String insertQuery = "INSERT INTO `transactions` (`transaction_id`, `user_id`, `amount`, `transaction_date`, `recipient_id`) VALUES (?,?,?,?,?)";
+        String checkQuery = "SELECT `walletba` FROM `register` WHERE `id`=?"; // OOP Requirement: Database manipulation - SEARCH
+        String updateQuery = "UPDATE `register` SET `walletba`=? WHERE `id`=?"; // OOP Requirement: Database manipulation - EDIT/UPDATE
+        String insertQuery = "INSERT INTO `transactions` (`transaction_id`, `user_id`, `amount`, `transaction_date`, `recipient_id`) VALUES (?,?,?,?,?)"; // OOP Requirement: Database manipulation - INSERT
 
         try {
             checkPs = MyConnection.getConnection().prepareStatement(checkQuery);
@@ -402,6 +403,7 @@ public class TransactionGUI extends javax.swing.JFrame {
 
             double newBalance = currentBalance - amount;
 
+            // OOP Requirement: Database manipulation - SEARCH (find highest existing transaction ID)
             PreparedStatement maxIdPs = MyConnection.getConnection().prepareStatement(
                 "SELECT MAX(CAST(SUBSTRING(transaction_id, 2) AS UNSIGNED)) AS maxNum FROM transactions WHERE transaction_id LIKE 'T%'");
             ResultSet maxIdRs = maxIdPs.executeQuery();

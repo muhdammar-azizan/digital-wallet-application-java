@@ -6,6 +6,8 @@
 
 package digitalwalletapplication;
 
+// OOP Requirement: Creating multiple Java classes - User is one of many entity classes (see also Wallet, Payment, RewardPoint, Currency, Transaction, etc.)
+// OOP Requirement: Encapsulation - private fields only accessible via constructor/getters below
 public class User {
     private String userID;
     private String name;
@@ -20,6 +22,7 @@ public class User {
     }
 
     public boolean validatePassword(String inputPassword) {
+        // OOP Requirement: String class method (.equals())
         return this.password.equals(inputPassword);
     }
 

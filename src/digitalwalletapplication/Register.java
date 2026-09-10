@@ -220,6 +220,7 @@ public class Register extends javax.swing.JFrame {
         String password = String.valueOf(jPasswordField1.getPassword());
         
         
+        // OOP Requirement: Database manipulation - INSERT (new user record)
         PreparedStatement ps;
         String query = "INSERT INTO `register`(`id`, `username`, `email`, `password`) VALUES (?,?,?,?)";
         try {

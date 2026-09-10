@@ -6,6 +6,7 @@
 
 package digitalwalletapplication;
 
+// OOP Requirement: Abstract class - defines a contract (abstract method below) for subclasses like TrackingTransaction
 abstract class Transaction {
     protected final String transactionID;
     protected final double amount;
@@ -35,6 +36,7 @@ abstract class Transaction {
         return receiverID;
     }
 
+    // OOP Requirement: abstract method - must be implemented by subclasses (see TrackingTransaction)
     public abstract void displayTransaction() ;
 
 }

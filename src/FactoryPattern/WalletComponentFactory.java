@@ -1,5 +1,6 @@
 package FactoryPattern;
 
+// OOP Requirement: Software design pattern - Factory Pattern (centralizes object creation behind createComponent())
 public class WalletComponentFactory {
 
     public static WalletComponent createComponent(String type, Object... params) {

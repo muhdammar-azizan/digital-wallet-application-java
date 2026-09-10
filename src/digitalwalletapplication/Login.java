@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
  *
  * @author ASUS
  */
+// OOP Requirement: Handling input and output through a GUI - this class and all *GUI/*Form classes in this package
 public class Login extends javax.swing.JFrame {
 
     /**
@@ -225,6 +226,7 @@ public class Login extends javax.swing.JFrame {
         String username = jUsername.getText();
         String password = String.valueOf(jPassword.getPassword());
         
+        // OOP Requirement: Database manipulation - SEARCH (find user by username/password)
         String query = "SELECT * FROM `register` WHERE `username`=? AND `password`=?";
         
         try {

@@ -6,6 +6,7 @@
 
 package digitalwalletapplication;
 
+// OOP Requirement: Inheritance - TrackingTransaction extends the abstract Transaction class
 class TrackingTransaction extends Transaction {
 
     public TrackingTransaction(String transactionID, double amount, int date, String receiverID) {
@@ -43,6 +44,7 @@ public static void searchTransactionByID(TrackingTransaction[] transactions, int
     }
 }
 
+    // OOP Requirement: Polymorphism - overrides Transaction's abstract method with its own behavior
     @Override
     public void displayTransaction() {
         System.out.println("Transaction Details:");

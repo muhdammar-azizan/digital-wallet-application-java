@@ -146,6 +146,7 @@ public class TrackTransGUI extends javax.swing.JFrame {
 
         PreparedStatement ps;
         ResultSet rs;
+        // OOP Requirement: Database manipulation - SEARCH (find transaction by ID)
         String query = "SELECT * FROM `transactions` WHERE `transaction_id`=?";
 
         try {
@@ -170,6 +171,7 @@ public class TrackTransGUI extends javax.swing.JFrame {
                     JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
+                    // OOP Requirement: Database manipulation - DELETE
                     PreparedStatement deletePs = MyConnection.getConnection().prepareStatement(
                         "DELETE FROM `transactions` WHERE `transaction_id`=?");
                     deletePs.setString(1, transactionID.trim());
